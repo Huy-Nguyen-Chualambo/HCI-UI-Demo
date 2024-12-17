@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train ticket machine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f8f8;
+            position: relative;
+        }
+
+        .container {
+            width: 360px;
+            border: 2px solid #f55;
+            border-radius: 10px;
+            padding: 20px;
+            background-color: #fff;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .container h1 {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+
+        .container h1 span {
+            display: block;
+            font-size: 14px;
+            color: gray;
+        }
+
+        .language {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .language button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+            color: #333;
+        }
+
+        .language button.active {
+            font-weight: bold;
+            color: #f55;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn {
+            width: 100%;
+            background-color: #f88;
+            border: none;
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background-color: #f55;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: gray;
+        }
+
+        /* Microphone Style */
+        .microphone {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #f55;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .microphone:hover {
+            background-color: #f33;
+        }
+
+        .microphone img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Microphone Page */
+        .mic-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .mic-page img {
+            width: 100px;
+            height: 100px;
+        }
+
+        .mic-page p {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .mic-page button {
+            margin-top: 30px;
+            background-color: #f55;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .mic-page button:hover {
+            background-color: #f33;
+        }
+
+        /* Payment Page */
+        .payment-methods {
+            display: none;
+            text-align: center;
+        }
+
+        .payment-methods.active {
+            display: block;
+        }
+
+        .payment-methods h2 {
+            margin-bottom: 20px;
+        }
+
+        .payment-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .payment-container button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .payment-container button:hover {
+            border-color: #f55;
+        }
+
+        .payment-container button img {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Microphone Icon -->
+        <div class="microphone" onclick="toggleMicPage()">
+            <img src="./pic/ai-micro24x24.png" alt="Microphone Icon">
+        </div>
+
+        <div class="language">
+            <button data-lang="vn" class="active" onclick="changeLanguage('vn')">VN</button>
+            <button data-lang="jp" onclick="changeLanguage('jp')">JP</button>
+            <button data-lang="gb" onclick="changeLanguage('gb')">GB</button>
+        </div>
+        <h1 id="page-title">Máy Bán Vé Tàu Điện</h1>
+        <form id="ticket-form">
+            <div class="form-group">
+                <label for="departure" id="departure-label">Ga Đi</label>
+                <select id="departure" name="departure">
+                    <option id="departure-default">Hà Nội</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="destination" id="destination-label">Ga Đến</label>
+                <select id="destination" name="destination">
+                    <option id="destination-default">Hồ Chí Minh</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="ticket-type" id="ticket-type-label">Loại Vé</label>
+                <select id="ticket-type" name="ticket-type">
+                    <option id="ticket-type-default">Chọn loại vé</option>
+                </select>
+            </div>
+            <button type="submit" class="btn" id="buy-ticket-btn">Mua Vé</button>
+        </form>
+        <div class="footer" id="footer">&copy; Hệ Thống Đường Sắt Quốc Gia</div>
+    </div>
+
+    <div class="mic-page" id="mic-page">
+        <img src="./pic/micro100x100.jpg" alt="Microphone Icon">
+        <p id="mic-instruction">Vui lòng nói vào máy...</p>
+        <button onclick="toggleMicPage()"><strong>X</strong></button>
+    </div>
+
+    <div class="payment-methods">
+        <h2 id="payment-title">Phương Thức Thanh Toán</h2>
+        <div class="payment-container">
+            <button onclick="showPaymentMessage('cash')">
+                <img src="./pic/cash24x24.jpg" alt="Cash">
+                <span class="payment-cash">Tiền Mặt</span>
+            </button>
+            <button onclick="showPaymentMessage('card')">
+                <img src="./pic/card24x24.png" alt="Card">
+                <span class="payment-card">Thẻ Ngân Hàng</span>
+            </button>
+            <button onclick="showPaymentMessage('qr')">
+                <img src="./pic/qr24x24.png" alt="QR Code">
+                <span class="payment-qr">Mã QR</span>
+            </button>
+            <button onclick="showPaymentMessage('monthly')">
+                <img src="./pic/monthlypass24x24.png" alt="Monthly Ticket">
+                <span class="payment-monthly">Vé Tháng</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Language translations
+        const translations = {
+            vn: {
+                title: 'Máy Bán Vé Tàu Điện',
+                departureLabel: 'Ga Đi',
+                departureDefault: 'Hà Nội',
+                destinationLabel: 'Ga Đến',
+                destinationDefault: 'Hồ Chí Minh',
+                ticketTypeLabel: 'Loại Vé',
+                ticketTypeDefault: 'Chọn loại vé',
+                buyTicketBtn: 'Mua Vé',
+                footer: '© Hệ Thống Đường Sắt Quốc Gia',
+                micInstruction: 'Vui lòng nói vào máy...',
+                paymentTitle: 'Phương Thức Thanh Toán',
+                paymentCash: 'Tiền Mặt',
+                paymentCard: 'Thẻ Ngân Hàng',
+                paymentQr: 'Mã QR',
+                paymentMonthly: 'Vé Tháng'
+            },
+            jp: {
+                title: '電車のチケット販売機',
+                departureLabel: '出発駅',
+                departureDefault: 'Ha Noi',
+                destinationLabel: '到着駅',
+                destinationDefault: 'Ho Chi Minh',
+                ticketTypeLabel: 'チケットの種類',
+                ticketTypeDefault: 'チケットの種類を選択',
+                buyTicketBtn: 'チケットを購入',
+                footer: '© 国鉄システム',
+                micInstruction: 'マイクに話してください...',
+                paymentTitle: '支払い方法',
+                paymentCash: '現金',
+                paymentCard: '銀行カード',
+                paymentQr: 'QRコード',
+                paymentMonthly: '月間チケット'
+            },
+            gb: {
+                title: 'Train Ticket Vending Machine',
+                departureLabel: 'Departure Station',
+                departureDefault: 'Ha Noi',
+                destinationLabel: 'Destination Station',
+                destinationDefault: 'Ho Chi Minh',
+                ticketTypeLabel: 'Ticket Type',
+                ticketTypeDefault: 'Select ticket type',
+                buyTicketBtn: 'Buy Ticket',
+                footer: '© National Railway System',
+                micInstruction: 'Please speak into the microphone...',
+                paymentTitle: 'Payment Methods',
+                paymentCash: 'Cash',
+                paymentCard: 'Bank Card',
+                paymentQr: 'QR Code',
+                paymentMonthly: 'Monthly Ticket'
+            }
+        };
+
+        // Current language
+        let currentLang = 'vn';
+
+        // Toggle microphone page
+        function toggleMicPage() {
+            const micPage = document.getElementById('mic-page');
+            const container = document.querySelector('.container');
+            
+            if (micPage.style.display === 'flex') {
+                micPage.style.display = 'none';
+                container.style.display = 'block';
+            } else {
+                micPage.style.display = 'flex';
+                container.style.display = 'none';
+            }
+        }
+
+        // Show payment methods
+        function showPaymentMethod() {
+            document.querySelector('.container').style.display = 'none';
+            document.querySelector('.payment-methods').classList.add('active');
+        }
+
+        // Change language
+        function changeLanguage(lang) {
+            // Update active language button
+            document.querySelectorAll('.language button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === lang) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update translations
+            const translation = translations[lang];
+            currentLang = lang;
+
+            // Update page elements
+            document.getElementById('page-title').textContent = translation.title;
+            document.getElementById('departure-label').textContent = translation.departureLabel;
+            document.getElementById('departure-default').textContent = translation.departureDefault;
+            document.getElementById('destination-label').textContent = translation.destinationLabel;
+            document.getElementById('destination-default').textContent = translation.destinationDefault;
+            document.getElementById('ticket-type-label').textContent = translation.ticketTypeLabel;
+            document.getElementById('ticket-type-default').textContent = translation.ticketTypeDefault;
+            document.getElementById('buy-ticket-btn').textContent = translation.buyTicketBtn;
+            document.getElementById('footer').textContent = translation.footer;
+            document.getElementById('mic-instruction').textContent = translation.micInstruction;
+            document.getElementById('payment-title').textContent = translation.paymentTitle;
+
+            // Update payment method texts
+            const paymentButtons = document.querySelectorAll('.payment-container button span');
+            paymentButtons[0].textContent = translation.paymentCash;
+            paymentButtons[1].textContent = translation.paymentCard;
+            paymentButtons[2].textContent = translation.paymentQr;
+            paymentButtons[3].textContent = translation.paymentMonthly;
+        }
+
+        // Form submission handler
+        document.getElementById('ticket-form').addEventListener('submit', (e) => {
+            e.preventDefault();''
+            showPaymentMethod();
+        });
+        
+        // Hiển thị thông báo thanh toán
+function showPaymentMessage(type) {
+    let content = "";
+    let icon = "";
+    let buttonLabel = "Xác Nhận";
+
+    if (type === "cash") {
+        content = "Vui lòng nhét tiền vào máy";
+        //icon = "https://via.placeholder.com/50"; // Icon tiền mặt
+    } else if (type === "card") {
+        content = "Vui lòng quẹt thẻ ngân hàng";
+        //icon = "https://via.placeholder.com/50"; // Icon thẻ ngân hàng
+    } else if (type === "monthly") {
+        content = "Vui lòng xác nhận vé tháng";
+        //icon = "https://via.placeholder.com/50"; // Icon vé tháng
+    } else if (type === "qr") {
+        // Tạo giao diện QR code riêng
+        content = `
+            <div style="text-align: center; margin-bottom: 10px;">
+                <img src="https://via.placeholder.com/50" alt="QR Icon" style="margin-bottom: 10px;">
+                <p>Scan QR code to pay</p>
+            </div>
+            <div style="
+                background-color: #f5f5f5; 
+                height: 200px; 
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                margin-bottom: 15px;">
+                <span style="color: gray; font-size: 16px;">QR Code</span>
+            </div>
+        `;
+        buttonLabel = "Confirm";
+    }
+
+    // Hiển thị popup
+    const paymentPopup = `
+        <div id="payment-popup" style="
+            position: fixed; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            background-color: #fff; 
+            border: 2px solid #ddd; 
+            border-radius: 10px; 
+            padding: 20px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+            text-align: center;
+            max-width: 360px;
+            z-index: 1000;">
+            <h3 style="margin-bottom: 15px;">Payment</h3>
+            ${type === "qr" ? content : `
+                <div style="background-color: #fffbdd; border-radius: 10px; padding: 15px;">
+                    <img src="${icon}" alt="${type}-icon" style="margin-bottom: 10px;">
+                    <p>${content}</p>
+                    <p style="color: gray; font-size: 14px;">processing</p>
+                </div>
+            `}
+            <button onclick="closePopup()" style="
+                background-color: #333; 
+                color: #fff; 
+                border: none; 
+                border-radius: 5px; 
+                padding: 8px 12px; 
+                cursor: pointer;">
+                ${buttonLabel}
+            </button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', paymentPopup);
+}
+
+// Đóng popup
+function closePopup() {
+    const popup = document.getElementById('payment-popup');
+    if (popup) popup.remove();
+}
+
+function showPaymentMessage(type) {
+    let content = "";
+    let icon = "";
+    let buttonLabel = "Confirm";
+
+    if (type === "cash") {
+        content = "Please insert money";
+        //icon = "https://via.placeholder.com/50"; // Icon tiền mặt
+    } else if (type === "card") {
+        content = "Please swipe your card";
+        //icon = "https://via.placeholder.com/50"; // Icon thẻ ngân hàng
+    } else if (type === "monthly") {
+        content = "Please swipe the card";
+        //icon = "https://via.placeholder.com/50"; // Icon vé tháng
+    } else if (type === "qr") {
+        content = `
+            <div style="text-align: center; margin-bottom: 10px;">
+                <!--<img src="https://via.placeholder.com/50" alt="QR Icon" style="margin-bottom: 10px;">-->
+                <p>Scan QR code to pay</p>
+            </div>
+            <div style="background-color: #f5f5f5; height: 200px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: gray; font-size: 16px;">QR code</span>
+            </div>
+        `;
+        buttonLabel = "Confirm";
+    }
+
+    // Hiển thị popup thanh toán
+    const paymentPopup = `
+        <div id="payment-popup" style="
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background-color: #fff; border: 2px solid #ddd; border-radius: 10px; 
+            padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); text-align: center; max-width: 360px;">
+            <h3>Payment</h3>
+            <div style="margin: 15px 0; background-color: #fffbdd; padding: 15px; border-radius: 10px;">
+                ${type === "qr" ? content : `
+                    <img src="${icon}" alt="${type}-icon" style="margin-bottom: 10px;">
+                    <p>${content}</p>
+                `}
+                <p style="color: gray; font-size: 14px;">Processing...</p>
+            </div>
+            <button onclick="confirmPayment()" style="
+                background-color: #333; color: #fff; border: none; 
+                border-radius: 5px; padding: 8px 12px; cursor: pointer;">
+                ${buttonLabel}
+            </button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', paymentPopup);
+}
+
+// Đóng popup hiện tại và hiển thị popup thanh toán thành công
+function confirmPayment() {
+    closePopup();
+    showSuccessMessage();
+}
+
+function showSuccessMessage() {
+    const successPopup = `
+        <div id="success-popup" style="
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background-color: #fff; border: 2px solid #ddd; border-radius: 10px;
+            padding: 20px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); text-align: center; max-width: 360px;">
+            <h3 style="color: #28a745; margin-bottom: 15px;">Payment successful !!!</h3>
+            <div style="font-size: 48px; color: #28a745;">&#10003;</div>
+            <p style="margin: 10px 0; color: #333;">Thanh You !</p>
+            <button onclick="closeSuccessMessage()" style="
+                margin-top: 10px; background-color: #333; color: #fff; border: none; 
+                border-radius: 5px; padding: 8px 12px; cursor: pointer;">
+                Close
+            </button>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', successPopup);
+}
+
+function closePopup() {
+    const popup = document.getElementById('payment-popup');
+    if (popup) popup.remove();
+}
+
+function closeSuccessMessage() {
+    const popup = document.getElementById('success-popup');
+    if (popup) popup.remove();
+}
+
+
+
+    </script>
+</body>
+</html>
